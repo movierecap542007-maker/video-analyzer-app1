@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Analyzer & Story Prompt Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-2.5 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">AI Video & Story Studio</h1>
+                    <p class="text-xs text-slate-400">Video Analyzer & Prompt Maker</p>
+                </div>
+            </div>
+            <div class="flex bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+                <button onclick="switchTab('analyzer')" id="tab-analyzer" class="px-4 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white shadow">Video Analyzer</button>
+                <button onclick="switchTab('maker')" id="tab-maker" class="px-4 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white">Story Prompt Maker</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- VIDEO ANALYZER SECTION -->
+        <section id="section-analyzer" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h2 class="font-semibold text-sm text-indigo-400"><i class="fa-solid fa-video mr-2"></i>Select Sample Video</h2>
+                    <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-slate-800">
+                        <video id="preview-video" class="w-full h-full object-cover" controls autoplay muted loop src="https://assets.mixkit.co/videos/preview/mixkit-girl-running-in-a-neon-lit-street-41529-large.mp4"></video>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="loadDemo('strawberry')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs border border-slate-700">🍓 Strawberry Runner</button>
+                        <button onclick="loadDemo('banana')" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs border border-slate-700">🍌 Banana Skater</button>
+                    </div>
+                    <button onclick="startAnalysis()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-medium text-xs shadow-lg transition">Analyze Video (AI ခွဲမည်)</button>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div id="analysis-progress-card" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hidden space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span id="progress-status-text" class="text-indigo-400">AI ဖြင့် ဗီဒီယိုကို စစ်ဆေးနေသည်...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div id="progress-bar-fill" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+                        <h2 class="font-semibold text-sm text-purple-400"><i class="fa-solid fa-masks-theater mr-2"></i>Character Replacement (ဇာတ်ကောင် အစားထိုးရန်)</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-slate-400">Original Character:</label>
+                                <input type="text" id="target-original" value="Strawberry Head Character" readonly class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400">Replace With:</label>
+                                <select id="replacement-select" onchange="updatePrompts()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs">
+                                    <option value="Apple Head Character">🍎 Apple Head (ပန်းသီးခေါင်း)</option>
+                                    <option value="Watermelon Head Character">🍉 Watermelon Head (ဖရဲသီးခေါင်း)</option>
+                                    <option value="Coconut Head Character">🥥 Coconut Head (အုန်းသီးခေါင်း)</option>
+                                    <option value="Monkey Character">🐒 Monkey Head</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                        <h2 class="font-semibold text-sm text-indigo-400"><i class="fa-solid fa-list-check mr-2"></i>Scene Breakdown & Prompts</h2>
+                        <div id="scenes-container" class="space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STORY PROMPT MAKER SECTION -->
+        <section id="section-maker" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h2 class="font-semibold text-sm text-purple-400"><i class="fa-solid fa-pen-nib mr-2"></i>Story Script Input</h2>
+                    <textarea id="story-outline-input" rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs" placeholder="ဇာတ်လမ်း အကျဉ်းချုပ် ရေးထည့်ပါ..."></textarea>
+                    <button onclick="generateStoryPrompts()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-medium text-xs shadow-lg transition">Generate Story Prompts</button>
+                </div>
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                    <h2 class="font-semibold text-sm text-purple-400"><i class="fa-solid fa-clapperboard mr-2"></i>Generated Prompts</h2>
+                    <div id="story-output-container" class="space-y-4">
+                        <div class="text-center py-12 text-slate-500 text-xs">ဇာတ်လမ်းရေးထည့်ပြီး Generate ကို နှိပ်ပါ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function switchTab(tab) {
+            if(tab === 'analyzer') {
+                document.getElementById('section-analyzer').classList.remove('hidden');
+                document.getElementById('section-maker').classList.add('hidden');
+            } else {
+                document.getElementById('section-analyzer').classList.add('hidden');
+                document.getElementById('section-maker').classList.remove('hidden');
+            }
+        }
+
+        const demos = {
+            strawberry: {
+                target: "Strawberry Head Character",
+                videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-girl-running-in-a-neon-lit-street-41529-large.mp4",
+                scenes: [
+                    { time: "00:00 - 00:03", action: "Strawberry Head character running through neon street", style: "3D Pixar Style" },
+                    { time: "00:03 - 00:07", action: "Jumping over obstacles in motion blur", style: "Cinematic Lighting" }
+                ]
+            },
+            banana: {
+                target: "Banana Head Character",
+                videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-skater-boy-skateboarding-in-a-park-42994-large.mp4",
+                scenes: [
+                    { time: "00:00 - 00:04", action: "Banana Head character skateboarding on beach road", style: "Realistic 3D Render" }
+                ]
+            }
+        };
+
+        let currentDemo = 'strawberry';
+        window.onload = () => loadDemo('strawberry');
+
+        function loadDemo(key) {
+            currentDemo = key;
+            document.getElementById('target-original').value = demos[key].target;
+            document.getElementById('preview-video').src = demos[key].videoUrl;
+            renderScenes();
+        }
+
+        function startAnalysis() {
+            const card = document.getElementById('analysis-progress-card');
+            const bar = document.getElementById('progress-bar-fill');
+            card.classList.remove('hidden');
+            let p = 0;
+            const timer = setInterval(() => {
+                p += 25;
+                bar.style.width = p + '%';
+                document.getElementById('progress-percent').innerText = p + '%';
+                if(p >= 100) { clearInterval(timer); renderScenes(); }
+            }, 150);
+        }
+
+        function renderScenes() {
+            const container = document.getElementById('scenes-container');
+            const rep = document.getElementById('replacement-select').value;
+            let html = '';
+            demos[currentDemo].scenes.forEach((sc, i) => {
+                let act = sc.action.replace(/Strawberry Head|Banana Head/g, rep);
+                html += `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs space-y-2">
+                    <div class="flex justify-between text-indigo-400 font-semibold"><span>Scene ${i+1} (${sc.time})</span><button onclick="navigator.clipboard.writeText('${act}')" class="bg-slate-800 px-2 py-0.5 rounded text-white">Copy</button></div>
+                    <p class="text-slate-300">${act}, ${sc.style}</p>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function updatePrompts() { renderScenes(); }
+
+        function generateStoryPrompts() {
+            const outline = document.getElementById('story-outline-input').value;
+            if(!outline) return alert('ဇာတ်လမ်းအကျဉ်း ထည့်ပါ');
+            let html = '';
+            for(let i=1; i<=6; i++) {
+                html += `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs">
+                    <span class="text-purple-400 font-semibold">Scene ${i}</span>
+                    <p class="text-slate-300 mt-1">${outline} - Scene ${i} presentation, 3D animated character, high visual detail.</p>
+                </div>`;
+            }
+            document.getElementById('story-output-container').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
